@@ -73,6 +73,7 @@ class FindLatentDirectionNode:
                 "target_word": ("STRING", {"default": "happy"}),
                 "opposite": ("STRING", {"default": "sad"}),
                 "iterations": ("INT", {"default": 300, "min": 1, "max": 0xffffffffffffffff}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
             }
         }
 
@@ -80,7 +81,8 @@ class FindLatentDirectionNode:
     FUNCTION = "find_latent_direction"
     CATEGORY = "conditioning"
 
-    def find_latent_direction(self, clip, target_word, opposite, iterations=300):
+    def find_latent_direction(self, clip, target_word, opposite, iterations=300, seed=0):
+        torch.manual_seed(seed)
         with torch.no_grad():
             positives = []
             negatives = []

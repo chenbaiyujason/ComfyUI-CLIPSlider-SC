@@ -1,15 +1,15 @@
 [project]
-name = "comfyui-clipslider"
-description = "A node to replicate https://huggingface.co/spaces/latentexplorers/latentnavigation-flux"
-version = "1.0.0"
+name = "comfyui-clipslider-sc"
+description = "A node to replicate https://huggingface.co/spaces/latentexplorers/latentnavigation-flux,最初的节点是由https://github.com/RhizoNymph/ComfyUI-CLIPSlider创建的，我进行了一些修改，使其更符合我的需求。"
+version = "1.1.0"
 license = {file = "LICENSE"}
 dependencies = ["diffusers"]
 
 [project.urls]
-Repository = "https://github.com/RhizoNymph/ComfyUI-CLIPSlider"
+Repository = "https://github.com/chenbaiyujason/ComfyUI-CLIPSlider-SC"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
-PublisherId = "rhizonymph"
+PublisherId = "shichen"
 DisplayName = "ComfyUI-CLIPSlider"
 Icon = ""
