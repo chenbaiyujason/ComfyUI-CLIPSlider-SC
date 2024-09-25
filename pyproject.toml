@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-clipslider-sc"
 description = "A node to replicate  https://huggingface.co/spaces/latentexplorers/latentnavigation-flux, the initial node is made by https://github.com/RhizoNymph/ComfyUI-CLIPSli der created, I made a few changes to make it more in line with my needs."
-version = "1.2.0"
+version = "1.2.1"
 license = {file = "LICENSE"}
 dependencies = ["diffusers"]
 

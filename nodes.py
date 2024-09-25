@@ -267,7 +267,7 @@ class CLIPSliderNode:
             },
             "optional": {
                 "latent_direction_2nd": ("LATENT",),
-                "scale_2nd": ("FLOAT", {"default": 0.0, "min": -10.0, "max": 10.0, "step": 0.1}),
+                "slider_target_2nd": ("FLOAT", {"default": 0.0, "min": -10.0, "max": 10.0, "step": 0.1}),
             }
         }
 
@@ -276,19 +276,19 @@ class CLIPSliderNode:
     FUNCTION = "apply_clip_slider"
     CATEGORY = "conditioning"
 
-    def apply_clip_slider(self, clip, latent_direction, scale, prompt,guidance,
-                          latent_direction_2nd=None, scale_2nd=0.0):
+    def apply_clip_slider(self, clip, latent_direction, slider_target, prompt,guidance,
+                          latent_direction_2nd=None, slider_target_2nd=0.0):
         tokens = clip.tokenize(prompt)
         positive_cond = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
         negative_cond = positive_cond.copy()
 
-        positive_cond['cond'] = positive_cond['cond'] + latent_direction * scale
+        positive_cond['cond'] = positive_cond['cond'] + latent_direction * slider_target
         if latent_direction_2nd is not None:
-            positive_cond['cond'] = positive_cond['cond'] + latent_direction_2nd * scale_2nd
+            positive_cond['cond'] = positive_cond['cond'] + latent_direction_2nd * slider_target_2nd
 
-        negative_cond['cond'] = negative_cond['cond'] - latent_direction * scale
+        negative_cond['cond'] = negative_cond['cond'] - latent_direction * slider_target
         if latent_direction_2nd is not None:
-            negative_cond['cond'] = negative_cond['cond'] - latent_direction_2nd * scale_2nd
+            negative_cond['cond'] = negative_cond['cond'] - latent_direction_2nd * slider_target_2nd
         cond = positive_cond.pop("cond")
         positive_cond["guidance"] = guidance
         negative_cond["guidance"] = guidance
