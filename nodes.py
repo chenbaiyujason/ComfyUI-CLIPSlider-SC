@@ -247,8 +247,54 @@ class CLIPSliderNodePooled:
             negative_conditioning['pooled_output'] = negative_conditioning['pooled_output'] - latent_direction_2nd * slider_target_2nd
         cond = positive_conditioning.pop("cond")
         positive_conditioning["guidance"] = guidance
+        negative_conditioning["guidance"] = guidance
         positive_output = ([cond, positive_conditioning], )
         negative_output = ([cond, negative_conditioning], )
+
+        return (positive_output, negative_output)
+
+
+class CLIPSliderNode:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "clip": ("CLIP",),
+                "latent_direction": ("LATENT",),
+                "slider_target": ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.1}),
+                "prompt": ("STRING", {"default": "a photo of a person", "multiline": True}),
+                "guidance": ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.1}),
+            },
+            "optional": {
+                "latent_direction_2nd": ("LATENT",),
+                "scale_2nd": ("FLOAT", {"default": 0.0, "min": -10.0, "max": 10.0, "step": 0.1}),
+            }
+        }
+
+    RETURN_TYPES = ("CONDITIONING", "CONDITIONING")
+    RETURN_NAMES = ("positive", "negative")
+    FUNCTION = "apply_clip_slider"
+    CATEGORY = "conditioning"
+
+    def apply_clip_slider(self, clip, latent_direction, scale, prompt,guidance,
+                          latent_direction_2nd=None, scale_2nd=0.0):
+        tokens = clip.tokenize(prompt)
+        positive_cond = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+        negative_cond = positive_cond.copy()
+
+        positive_cond['cond'] = positive_cond['cond'] + latent_direction * scale
+        if latent_direction_2nd is not None:
+            positive_cond['cond'] = positive_cond['cond'] + latent_direction_2nd * scale_2nd
+
+        negative_cond['cond'] = negative_cond['cond'] - latent_direction * scale
+        if latent_direction_2nd is not None:
+            negative_cond['cond'] = negative_cond['cond'] - latent_direction_2nd * scale_2nd
+        cond = positive_cond.pop("cond")
+        positive_cond["guidance"] = guidance
+        negative_cond["guidance"] = guidance
+        positive_output = ([cond, positive_cond], )
+        negative_output = ([cond, negative_cond], )
+
 
         return (positive_output, negative_output)
 
