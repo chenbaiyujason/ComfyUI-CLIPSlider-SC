@@ -31,16 +31,12 @@ class CLIPSliderNode:
             "required": {
                 "model": ("MODEL",),
                 "clip": ("CLIP",),
-                "target_word": ("STRING", {"default": "happy"}),
-                "opposite": ("STRING", {"default": "sad"}),
+                "latent_direction": ("LATENT",),
                 "scale": ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.1}),
                 "prompt": ("STRING", {"default": "a photo of a person"}),
-                "iterations": ("INT", {"default": 300, "min": 1, "max": 0xffffffffffffffff}),
-                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
             },
             "optional": {
-                "target_word_2nd": ("STRING", {"default": ""}),
-                "opposite_2nd": ("STRING", {"default": ""}),
+                "latent_direction_2nd": ("LATENT",),
                 "scale_2nd": ("FLOAT", {"default": 0.0, "min": -10.0, "max": 10.0, "step": 0.1}),
             }
         }
@@ -50,8 +46,39 @@ class CLIPSliderNode:
     FUNCTION = "apply_clip_slider"
     CATEGORY = "conditioning"
 
-    def __init__(self):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    def apply_clip_slider(self, model, clip, latent_direction, scale, prompt,
+                          latent_direction_2nd=None, scale_2nd=0.0):
+        tokens = clip.tokenize(prompt)
+        cond, pooled = clip.encode_from_tokens(tokens, return_pooled=True)
+
+        positive_cond = cond + latent_direction * scale
+        if latent_direction_2nd is not None:
+            positive_cond = positive_cond + latent_direction_2nd * scale_2nd
+
+        negative_cond = cond - latent_direction * scale
+        if latent_direction_2nd is not None:
+            negative_cond = negative_cond - latent_direction_2nd * scale_2nd
+
+        positive_conditioning = [[positive_cond, {"pooled_output": pooled}]]
+        negative_conditioning = [[negative_cond, {"pooled_output": pooled}]]
+
+        return (positive_conditioning, negative_conditioning)
+
+class FindLatentDirectionNode:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "clip": ("CLIP",),
+                "target_word": ("STRING", {"default": "happy"}),
+                "opposite": ("STRING", {"default": "sad"}),
+                "iterations": ("INT", {"default": 300, "min": 1, "max": 0xffffffffffffffff}),
+            }
+        }
+
+    RETURN_TYPES = ("LATENT",)
+    FUNCTION = "find_latent_direction"
+    CATEGORY = "conditioning"
 
     def find_latent_direction(self, clip, target_word, opposite, iterations=300):
         with torch.no_grad():
@@ -73,39 +100,14 @@ class CLIPSliderNode:
         negatives = torch.cat(negatives, dim=0)
         diffs = positives - negatives
         avg_diff = diffs.mean(0, keepdim=True)
-        return avg_diff
-
-    def apply_clip_slider(self, model, clip, target_word, opposite, scale, prompt, iterations, seed,
-                          target_word_2nd="", opposite_2nd="", scale_2nd=0.0):
-        torch.manual_seed(seed)
-
-        avg_diff = self.find_latent_direction(clip, target_word, opposite, iterations)
-        avg_diff_2nd = None
-        if target_word_2nd and opposite_2nd:
-            avg_diff_2nd = self.find_latent_direction(clip, target_word_2nd, opposite_2nd, iterations)
-
-        tokens = clip.tokenize(prompt)
-        cond, pooled = clip.encode_from_tokens(tokens, return_pooled=True)
-
-        # Apply the CLIP slider effect for positive conditioning
-        positive_cond = cond + avg_diff * scale
-        if avg_diff_2nd is not None:
-            positive_cond = positive_cond + avg_diff_2nd * scale_2nd
-
-        # Apply the inverse CLIP slider effect for negative conditioning
-        negative_cond = cond - avg_diff * scale
-        if avg_diff_2nd is not None:
-            negative_cond = negative_cond - avg_diff_2nd * scale_2nd
-
-        positive_conditioning = [[positive_cond, {"pooled_output": pooled}]]
-        negative_conditioning = [[negative_cond, {"pooled_output": pooled}]]
-
-        return (positive_conditioning, negative_conditioning)
+        return (avg_diff,)
 
 NODE_CLASS_MAPPINGS = {
-    "CLIPSlider": CLIPSliderNode
+    "CLIPSlider": CLIPSliderNode,
+    "FindLatentDirection": FindLatentDirectionNode
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "CLIPSlider": "CLIP Slider"
+    "CLIPSlider": "CLIP Slider",
+    "FindLatentDirection": "Find Latent Direction"
 }
