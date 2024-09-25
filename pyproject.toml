@@ -11,5 +11,5 @@ Repository = "https://github.com/chenbaiyujason/ComfyUI-CLIPSlider-SC"
 
 [tool.comfy]
 PublisherId = "shichen"
-DisplayName = "ComfyUI-CLIPSlider"
+DisplayName = "ComfyUI-CLIPSlider-SC"
 Icon = ""
