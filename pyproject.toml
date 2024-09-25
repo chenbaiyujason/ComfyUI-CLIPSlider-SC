@@ -1,6 +1,6 @@
 [project]
 name = "comfyui-clipslider-sc"
-description = "A node to replicate https://huggingface.co/spaces/latentexplorers/latentnavigation-flux,最初的节点是由https://github.com/RhizoNymph/ComfyUI-CLIPSlider创建的，我进行了一些修改，使其更符合我的需求。"
+description = "A node to replicate  https://huggingface.co/spaces/latentexplorers/latentnavigation-flux, the initial node is made by https://github.com/RhizoNymph/ComfyUI-CLIPSli der created, I made a few changes to make it more in line with my needs."
 version = "1.1.0"
 license = {file = "LICENSE"}
 dependencies = ["diffusers"]
